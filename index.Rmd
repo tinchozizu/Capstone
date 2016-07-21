@@ -1,0 +1,86 @@
+---
+title: "Capstone Project"
+author: "Martin Salvo"
+highlighter: highlight.js 
+output: 
+job: null
+knit: slidify::knit2slides
+mode: selfcontained # {standalone, draft}
+hitheme: tomorrow
+subtitle: null
+framework: io2012
+widgets: []
+---
+
+## Intro
+  
+This a presentation that explains how the app works. The app tries to capture relationships between words in order to predict the next one.
+
+These relationships were obtained after processing the given texts sources (twitter, news and blogs) and then saved in bigrams, trigrams and quadgrams R data files. Finally, matches the most seen structure that equals the input text and returns the next word.
+
+---
+  
+## Cleaning Text
+  
+  First of all we clean the text in order to have a clean phrase...we remove punctuation, numbers and strip spaces.
+```{r, ECHO=TRUE}
+library(tm)
+library(stringr)
+library(markdown)
+library(stylo)
+text_cleaner<-function(text){
+  cleanText <- tolower(text)
+  cleanText <- removePunctuation(cleanText)
+  cleanText <- removeNumbers(cleanText)
+  cleanText <- str_replace_all(cleanText, "[^[:alnum:]]", " ")
+  cleanText <- stripWhitespace(cleanText)
+  inputText <- txt.to.words.ext(cleanText, 
+                                language="English.all", 
+                                preserve.case = TRUE)
+  return(inputText)
+}
+string1 <- 'I´m very funny, I bet 1000 times I am'
+clean_string <- text_cleaner(string1)
+```
+The result is ```r clean_string```.
+
+---
+  
+## Word Predictor - Part 1
+  
+  The prediction algorithm is quite straight forward, it looks at the structure with more words that matches the database. This database contains the structures most seen in the provided sources of twitter, blogs and news.
+```{r, ECHO=TRUE, eval=FALSE}
+WordPredictor <- function(wordCount,inputText){
+  if (wordCount>=3) {
+    inputText <- inputText[(wordCount-2):wordCount] 
+  }
+  else if(wordCount==2) {
+    inputText <- c(NA,inputText)   
+  }
+  
+  else {
+    inputText <- c(NA,NA,inputText)
+  }
+
+}
+```
+
+---
+
+## Word Predictor - Part 2
+  
+```{r, ECHO=TRUE, eval=FALSE}
+wordPrediction <- as.character(quadgram[quadgram$ColA==inputText[1] & 
+                                          quadgram$ColB==inputText[2] & quadgram$ColC==inputText[3],][1,]$ColD)
+if(is.na(wordPrediction)) {
+  wordPrediction1 <- as.character(trigram[trigram$ColA==inputText[2] &                                               trigram$ColB==inputText[3],][1,]$ColC)
+  
+  if(is.na(wordPrediction)) {
+    wordPrediction <- as.character(bigram[bigram$ColA==inputText[3],][1,]$ColB)
+  }
+}
+print(wordPrediction)
+```
+The database is not large enough to capture complex relationships so the algorithm tends to fall is common bigrams loosing focus. That is to say, when bigrams are used instead of trigrams or quadgrams the algorithm is quite ineffective.
+
+On the other hand, processing requirements are minimals because the relationships are already included in the database and the code just matches words.
